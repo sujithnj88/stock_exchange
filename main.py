@@ -5,7 +5,7 @@ from data_scrapper.nse_scrapper import NseScrapper
 def main():
     exchange_handler = NseScrapper()
     data_frame_len = 0
-    for i in range(10):
+    for i in range(1000):
         start = time.time()
         while data_frame_len == 0:
             exchange_handler.fetch_nse_data() 
