@@ -4,23 +4,16 @@ import requests
 from typing import List
 
 from data_scrapper.data_classes import ShareAttributes, ShareVal
-from data_scrapper.cookie_generator import NseCookie
 
 
 class NseScrapper:
     def __init__(self) -> None:
+        self.session = requests.Session()
         self.headers = {
-            'Accept': '*/*',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'en-IN,en-GB;q=0.9,en;q=0.8',
             'Connection': 'keep-alive',
-            'Cookie': NseCookie().cookie.output(),
-            'Host': 'www.nseindia.com',
-            'Referer': 'https://www.nseindia.com/market-data/top-gainers-losers',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15'
         }
         self.url = 'https://www.nseindia.com/api/live-analysis-variations?index=gainers'
 
@@ -35,15 +28,14 @@ class NseScrapper:
         pd.DataFrame(self.share_holder.share_info).to_excel("output.xlsx")
 
     def fetch_nse_data(self, filters: List[str] = ["NIFTYNEXT50", "SecGtr20"]):
-        response = requests.get(self.url, headers=self.headers, timeout=60)
-        print("Response Ready...")
+        response = self.session.get(self.url, headers=self.headers, timeout=60)
         if response.status_code == 200:
             data = response.json()
             for _, share_info in {key: data[key].get("data") for key in filters if key in data}.items():
                 for share in share_info:
                     volume = share.get("trade_quantity")
                     change = share.get("perChange")
-                    if volume > 150000 and change > 5:
+                    if volume > 150000 and change > 2:
                         share_val_info = ShareVal(
                             name=share.get("symbol"),
                             open=share.get("open_price"),
